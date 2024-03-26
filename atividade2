@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Definição da estrutura para representar um contato
+typedef struct {
+    char nome[50];
+    char telefone[20];
+} Contato;
+
+// Função para adicionar um novo contato à lista telefônica
+void adicionarContato(Contato *lista, int *totalContatos) {
+    printf("Digite o nome do contato: ");
+    scanf("%s", lista[*totalContatos].nome);
+    printf("Digite o telefone do contato: ");
+    scanf("%s", lista[*totalContatos].telefone);
+    (*totalContatos)++;
+    printf("Contato adicionado com sucesso!\n");
+}
+
+// Função para remover um contato da lista telefônica
+void removerContato(Contato *lista, int *totalContatos) {
+    char nomeRemover[50];
+    printf("Digite o nome do contato que deseja remover: ");
+    scanf("%s", nomeRemover);
+
+    int i;
+    for (i = 0; i < *totalContatos; i++) {
+        if (strcmp(lista[i].nome, nomeRemover) == 0) {
+            // Move todos os contatos à frente do contato removido uma posição para trás
+            for (int j = i; j < *totalContatos - 1; j++) {
+                strcpy(lista[j].nome, lista[j + 1].nome);
+                strcpy(lista[j].telefone, lista[j + 1].telefone);
+            }
+            (*totalContatos)--;
+            printf("Contato removido com sucesso!\n");
+            return;
+        }
+    }
+    printf("Contato não encontrado na lista.\n");
+}
+
+int main() {
+    Contato listaTelefonica[100]; // Array para armazenar os contatos
+    int totalContatos = 0; // Variável para rastrear o total de contatos
+
+    char opcao;
+    do {
+        printf("\nMenu:\n");
+        printf("1. Adicionar Contato\n");
+        printf("2. Remover Contato\n");
+        printf("3. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf(" %c", &opcao);
+
+        switch(opcao) {
+            case '1':
+                if (totalContatos < 100) {
+                    adicionarContato(listaTelefonica, &totalContatos);
+                } else {
+                    printf("Lista telefônica cheia. Não é possível adicionar mais contatos.\n");
+                }
+                break;
+            case '2':
+                removerContato(listaTelefonica, &totalContatos);
+                break;
+            case '3':
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opção inválida. Tente novamente.\n");
+        }
+    } while (opcao != '3');
+
+    return 0;
+}

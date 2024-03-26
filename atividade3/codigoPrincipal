@@ -1,0 +1,122 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+// Estrutura de nó para a árvore binária de busca
+typedef struct TreeNode {
+    char *key;
+    struct TreeNode *left;
+    struct TreeNode *right;
+} TreeNode;
+
+// Função para criar um novo nó
+TreeNode* createNode(char *key) {
+    TreeNode *newNode = (TreeNode*)malloc(sizeof(TreeNode));
+    if (newNode == NULL) {
+        printf("Erro: Falha ao alocar memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->key = strdup(key); // strdup aloca memória para a string e copia o conteúdo
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+// Função para inserir uma palavra-chave na árvore binária de busca
+TreeNode* insert(TreeNode *root, char *key) {
+    // Caso base: árvore está vazia
+    if (root == NULL) {
+        return createNode(key);
+    }
+
+    // Ignora maiúsculas e minúsculas para comparação
+    int cmp = strcasecmp(key, root->key);
+
+    // Se a palavra-chave já existe, não insere novamente
+    if (cmp == 0) {
+        return root;
+    }
+
+    // Se a palavra-chave é menor, insere na subárvore esquerda
+    if (cmp < 0) {
+        root->left = insert(root->left, key);
+    }
+    // Se a palavra-chave é maior, insere na subárvore direita
+    else {
+        root->right = insert(root->right, key);
+    }
+
+    return root;
+}
+
+// Função para buscar uma palavra-chave na árvore binária de busca
+int search(TreeNode *root, char *key) {
+    // Caso base: árvore está vazia ou palavra-chave não encontrada
+    if (root == NULL) {
+        return 0;
+    }
+
+    // Ignora maiúsculas e minúsculas para comparação
+    int cmp = strcasecmp(key, root->key);
+
+    // Se a palavra-chave é encontrada
+    if (cmp == 0) {
+        return 1;
+    }
+    // Se a palavra-chave é menor, busca na subárvore esquerda
+    else if (cmp < 0) {
+        return search(root->left, key);
+    }
+    // Se a palavra-chave é maior, busca na subárvore direita
+    else {
+        return search(root->right, key);
+    }
+}
+
+// Função para liberar a memória alocada pela árvore
+void freeTree(TreeNode *root) {
+    if (root != NULL) {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root->key);
+        free(root);
+    }
+}
+
+int main() {
+    TreeNode *root = NULL;
+    char keyword[100];
+
+    // Abre o arquivo de entrada
+    FILE *file = fopen("palavras_chave.txt", "r");
+    if (file == NULL) {
+        printf("Erro: Não foi possível abrir o arquivo de entrada.\n");
+        return EXIT_FAILURE;
+    }
+
+    // Lê as palavras-chave do arquivo e insere na árvore
+    while (fscanf(file, "%s", keyword) != EOF) {
+        root = insert(root, keyword);
+    }
+
+    fclose(file);
+
+    // Solicita ao usuário uma palavra para busca
+    printf("Digite uma palavra para busca: ");
+    scanf("%s", keyword);
+
+    // Verifica se a palavra está presente na árvore
+    if (search(root, keyword)) {
+        printf("A palavra '%s' está presente no dicionário.\n", keyword);
+    } else {
+        printf("A palavra '%s' não está presente no dicionário.\n", keyword);
+    }
+
+    // Libera a memória alocada pela árvore
+    freeTree(root);
+
+    return EXIT_SUCCESS;
+}
+

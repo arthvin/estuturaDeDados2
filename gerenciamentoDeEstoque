@@ -1,0 +1,149 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Definição da estrutura do produto
+typedef struct {
+    char nome[50];
+    float preco;
+    int quantidade;
+} Produto;
+
+// Definição da estrutura do nó da lista encadeada
+typedef struct Node {
+    Produto produto;
+    struct Node* next;
+} Node;
+
+// Definição da estrutura de estoque
+typedef struct {
+    Node* head;
+} Estoque;
+
+// Função para criar um novo nó
+Node* criarNo(Produto produto) {
+    Node* novoNo = (Node*)malloc(sizeof(Node));
+    if (novoNo != NULL) {
+        novoNo->produto = produto;
+        novoNo->next = NULL;
+    }
+    return novoNo;
+}
+
+// Função para inicializar o estoque
+Estoque* inicializarEstoque() {
+    Estoque* estoque = (Estoque*)malloc(sizeof(Estoque));
+    if (estoque != NULL) {
+        estoque->head = NULL;
+    }
+    return estoque;
+}
+
+// Função para adicionar um produto ao estoque
+void adicionarProduto(Estoque* estoque, Produto produto) {
+    Node* novoNo = criarNo(produto);
+    if (novoNo != NULL) {
+        novoNo->next = estoque->head;
+        estoque->head = novoNo;
+        printf("%s adicionado ao estoque.\n", produto.nome);
+    } else {
+        printf("Erro ao adicionar o produto ao estoque. Memória insuficiente.\n");
+    }
+}
+
+// Função para remover um produto do estoque
+void removerProduto(Estoque* estoque, const char* nomeProduto) {
+    Node* atual = estoque->head;
+    Node* anterior = NULL;
+    while (atual != NULL) {
+        if (strcmp(atual->produto.nome, nomeProduto) == 0) {
+            if (anterior == NULL) {
+                estoque->head = atual->next;
+            } else {
+                anterior->next = atual->next;
+            }
+            free(atual);
+            printf("%s removido do estoque.\n", nomeProduto);
+            return;
+        }
+        anterior = atual;
+        atual = atual->next;
+    }
+    printf("%s não encontrado no estoque.\n", nomeProduto);
+}
+
+// Função para buscar um produto no estoque
+Produto* buscarProduto(Estoque* estoque, const char* nomeProduto) {
+    Node* atual = estoque->head;
+    while (atual != NULL) {
+        if (strcmp(atual->produto.nome, nomeProduto) == 0) {
+            return &atual->produto;
+        }
+        atual = atual->next;
+    }
+    return NULL;
+}
+
+// Função para imprimir todos os produtos no estoque
+void listarProdutos(Estoque* estoque) {
+    Node* atual = estoque->head;
+    if (atual == NULL) {
+        printf("O estoque está vazio.\n");
+    } else {
+        printf("Produtos no estoque:\n");
+        while (atual != NULL) {
+            printf("%s - R$%.2f - %d unidades\n", atual->produto.nome, atual->produto.preco, atual->produto.quantidade);
+            atual = atual->next;
+        }
+    }
+}
+
+// Função para liberar a memória alocada para o estoque
+void liberarEstoque(Estoque* estoque) {
+    Node* atual = estoque->head;
+    Node* temp;
+    while (atual != NULL) {
+        temp = atual;
+        atual = atual->next;
+        free(temp);
+    }
+    free(estoque);
+}
+
+int main() {
+    Estoque* estoque = inicializarEstoque();
+
+    // Variáveis para armazenar os dados do produto
+    char nome[50];
+    float preco;
+    int quantidade;
+
+    // Solicitar ao usuário para digitar os dados do produto
+    printf("Digite o nome do produto: ");
+    fgets(nome, sizeof(nome), stdin);
+    nome[strcspn(nome, "\n")] = '\0'; // Remove a quebra de linha da entrada
+
+    printf("Digite o preço do produto: ");
+    scanf("%f", &preco);
+
+    printf("Digite a quantidade do produto: ");
+    scanf("%d", &quantidade);
+
+    // Criar o objeto de produto com os dados fornecidos pelo usuário
+    Produto novoProduto;
+    strcpy(novoProduto.nome, nome);
+    novoProduto.preco = preco;
+    novoProduto.quantidade = quantidade;
+
+    // Adicionar o produto ao estoque
+    adicionarProduto(estoque, novoProduto);
+
+    // Listar os produtos para verificar se o novo produto foi adicionado corretamente
+    listarProdutos(estoque);
+
+    // Liberar a memória alocada para o estoque
+    liberarEstoque(estoque);
+
+    return 0;
+}
+

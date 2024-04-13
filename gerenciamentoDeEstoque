@@ -2,25 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Definição da estrutura do produto
 typedef struct {
     char nome[50];
     float preco;
     int quantidade;
 } Produto;
 
-// Definição da estrutura do nó da lista encadeada
 typedef struct Node {
     Produto produto;
     struct Node* next;
 } Node;
 
-// Definição da estrutura de estoque
 typedef struct {
     Node* head;
 } Estoque;
 
-// Função para criar um novo nó
 Node* criarNo(Produto produto) {
     Node* novoNo = (Node*)malloc(sizeof(Node));
     if (novoNo != NULL) {
@@ -45,7 +41,6 @@ void adicionarProduto(Estoque* estoque, Produto produto) {
     if (novoNo != NULL) {
         novoNo->next = estoque->head;
         estoque->head = novoNo;
-        printf("%s adicionado ao estoque.\n", produto.nome);
     } else {
         printf("Erro ao adicionar o produto ao estoque. Memória insuficiente.\n");
     }
@@ -98,52 +93,67 @@ void listarProdutos(Estoque* estoque) {
     }
 }
 
-// Função para liberar a memória alocada para o estoque
-void liberarEstoque(Estoque* estoque) {
-    Node* atual = estoque->head;
-    Node* temp;
-    while (atual != NULL) {
-        temp = atual;
-        atual = atual->next;
-        free(temp);
-    }
-    free(estoque);
-}
-
 int main() {
     Estoque* estoque = inicializarEstoque();
 
-    // Variáveis para armazenar os dados do produto
-    char nome[50];
-    float preco;
-    int quantidade;
+    int opcao;
+    char nomeProduto[50];
 
-    // Solicitar ao usuário para digitar os dados do produto
-    printf("Digite o nome do produto: ");
-    fgets(nome, sizeof(nome), stdin);
-    nome[strcspn(nome, "\n")] = '\0'; // Remove a quebra de linha da entrada
+    do {
+        printf("\n========== ESTOQUE ==========\n");
+        printf("1. Adicionar Produto\n");
+        printf("2. Remover Produto\n");
+        printf("3. Buscar Produto\n");
+        printf("4. Listar Produtos\n");
+        printf("0. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
 
-    printf("Digite o preço do produto: ");
-    scanf("%f", &preco);
-
-    printf("Digite a quantidade do produto: ");
-    scanf("%d", &quantidade);
-
-    // Criar o objeto de produto com os dados fornecidos pelo usuário
-    Produto novoProduto;
-    strcpy(novoProduto.nome, nome);
-    novoProduto.preco = preco;
-    novoProduto.quantidade = quantidade;
-
-    // Adicionar o produto ao estoque
-    adicionarProduto(estoque, novoProduto);
-
-    // Listar os produtos para verificar se o novo produto foi adicionado corretamente
-    listarProdutos(estoque);
-
-    // Liberar a memória alocada para o estoque
-    liberarEstoque(estoque);
-
+        switch (opcao) {
+            case 1: // Adicionar Produto
+                {
+                    Produto novoProduto;
+                    printf("Nome do produto: ");
+                    scanf("%s", novoProduto.nome);
+                    printf("Preço do produto: ");
+                    scanf("%f", &novoProduto.preco);
+                    printf("Quantidade do produto: ");
+                    scanf("%d", &novoProduto.quantidade);
+                    adicionarProduto(estoque, novoProduto);
+                    printf("Produto adicionado com sucesso.\n");
+                    break;
+                }
+            case 2: // Remover Produto
+                {
+                    printf("Nome do produto a ser removido: ");
+                    scanf("%s", nomeProduto);
+                    removerProduto(estoque, nomeProduto);
+                    break;
+                }
+            case 3: // Buscar Produto
+                {
+                    printf("Nome do produto a ser buscado: ");
+                    scanf("%s", nomeProduto);
+                    Produto* produtoBuscado = buscarProduto(estoque, nomeProduto);
+                    if (produtoBuscado != NULL) {
+                        printf("Produto encontrado: %s - R$%.2f - %d unidades\n", produtoBuscado->nome, produtoBuscado->preco, produtoBuscado->quantidade);
+                    } else {
+                        printf("Produto não encontrado.\n");
+                    }
+                    break;
+                }
+            case 4: // Listar Produtos
+                listarProdutos(estoque);
+                break;
+            case 0: // Sair
+                printf("Saindo do programa...\n");
+                break;
+            default:
+                printf("Opção inválida. Tente novamente.\n");
+        }
+    } while (opcao != 0);
+    
     return 0;
 }
+
 

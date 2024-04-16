@@ -3,74 +3,171 @@
 #include <string.h>
 
 // Definição da estrutura para representar um contato
-typedef struct {
+typedef struct Contato {
     char nome[50];
     char telefone[20];
+    struct Contato* proximo;
 } Contato;
 
-// Função para adicionar um novo contato à lista telefônica
-void adicionarContato(Contato *lista, int *totalContatos) {
-    printf("Digite o nome do contato: ");
-    scanf("%s", lista[*totalContatos].nome);
-    printf("Digite o telefone do contato: ");
-    scanf("%s", lista[*totalContatos].telefone);
-    (*totalContatos)++;
-    printf("Contato adicionado com sucesso!\n");
+// Função para criar um novo nó de contato
+Contato* criarContato(const char *nome, const char *telefone) {
+    Contato* novoContato = (Contato*)malloc(sizeof(Contato));
+    if (novoContato != NULL) {
+        strcpy(novoContato->nome, nome);
+        strcpy(novoContato->telefone, telefone);
+        novoContato->proximo = NULL;
+    }
+    return novoContato;
 }
 
-// Função para remover um contato da lista telefônica
-void removerContato(Contato *lista, int *totalContatos) {
-    char nomeRemover[50];
-    printf("Digite o nome do contato que deseja remover: ");
-    scanf("%s", nomeRemover);
+// Função para adicionar um novo contato à lista encadeada ordenada por nome
+Contato* adicionarContatoOrdenado(Contato *cabeca, const char *nome, const char *telefone) {
+    Contato* novoContato = criarContato(nome, telefone);
+    if (novoContato == NULL) {
+        printf("Erro ao adicionar contato. Memória insuficiente.\n");
+        return cabeca;
+    }
 
-    int i;
-    for (i = 0; i < *totalContatos; i++) {
-        if (strcmp(lista[i].nome, nomeRemover) == 0) {
-            // Move todos os contatos à frente do contato removido uma posição para trás
-            for (int j = i; j < *totalContatos - 1; j++) {
-                strcpy(lista[j].nome, lista[j + 1].nome);
-                strcpy(lista[j].telefone, lista[j + 1].telefone);
-            }
-            (*totalContatos)--;
-            printf("Contato removido com sucesso!\n");
+    // Caso a lista esteja vazia ou o novo contato deve ser o primeiro
+    if (cabeca == NULL || strcmp(nome, cabeca->nome) < 0) {
+        novoContato->proximo = cabeca;
+        return novoContato;
+    }
+
+    Contato* anterior = cabeca;
+    Contato* atual = cabeca->proximo;
+    while (atual != NULL && strcmp(nome, atual->nome) > 0) {
+        anterior = atual;
+        atual = atual->proximo;
+    }
+
+    // Inserção do novo contato entre anterior e atual
+    anterior->proximo = novoContato;
+    novoContato->proximo = atual;
+
+    return cabeca;
+}
+
+// Função para remover um contato da lista encadeada
+Contato* removerContato(Contato *cabeca, const char *nome) {
+    if (cabeca == NULL) {
+        printf("Lista de contatos vazia.\n");
+        return NULL;
+    }
+
+    // Caso o contato a ser removido seja o primeiro da lista
+    if (strcmp(cabeca->nome, nome) == 0) {
+        Contato *temp = cabeca;
+        cabeca = cabeca->proximo;
+        free(temp);
+        printf("Contato removido com sucesso!\n");
+        return cabeca;
+    }
+
+    Contato *anterior = cabeca;
+    Contato *atual = cabeca->proximo;
+    while (atual != NULL && strcmp(atual->nome, nome) != 0) {
+        anterior = atual;
+        atual = atual->proximo;
+    }
+
+    if (atual == NULL) {
+        printf("Contato não encontrado na lista.\n");
+        return cabeca;
+    }
+
+    anterior->proximo = atual->proximo;
+    free(atual);
+    printf("Contato removido com sucesso!\n");
+    return cabeca;
+}
+
+// Função para listar todos os contatos armazenados
+void listarContatos(Contato *cabeca) {
+    printf("Lista de contatos:\n");
+    Contato *atual = cabeca;
+    while (atual != NULL) {
+        printf("Nome: %s, Telefone: %s\n", atual->nome, atual->telefone);
+        atual = atual->proximo;
+    }
+}
+
+// Função para buscar um contato pelo nome
+void buscarContato(Contato *cabeca, const char *nome) {
+    Contato *atual = cabeca;
+    while (atual != NULL) {
+        if (strcmp(atual->nome, nome) == 0) {
+            printf("Contato encontrado:\n");
+            printf("Nome: %s, Telefone: %s\n", atual->nome, atual->telefone);
             return;
         }
+        atual = atual->proximo;
     }
     printf("Contato não encontrado na lista.\n");
 }
 
+// Função para liberar a memória ocupada pela lista encadeada
+void liberarLista(Contato *cabeca) {
+    Contato *atual = cabeca;
+    while (atual != NULL) {
+        Contato *temp = atual;
+        atual = atual->proximo;
+        free(temp);
+    }
+}
+
 int main() {
-    Contato listaTelefonica[100]; // Array para armazenar os contatos
-    int totalContatos = 0; // Variável para rastrear o total de contatos
+    Contato *cabeca = NULL;
 
     char opcao;
     do {
         printf("\nMenu:\n");
         printf("1. Adicionar Contato\n");
         printf("2. Remover Contato\n");
-        printf("3. Sair\n");
+        printf("3. Listar Contatos\n");
+        printf("4. Buscar Contato\n");
+        printf("5. Sair\n");
         printf("Escolha uma opção: ");
         scanf(" %c", &opcao);
 
+        char nome[50], telefone[20];
         switch(opcao) {
             case '1':
-                if (totalContatos < 100) {
-                    adicionarContato(listaTelefonica, &totalContatos);
-                } else {
-                    printf("Lista telefônica cheia. Não é possível adicionar mais contatos.\n");
-                }
+                printf("Digite o nome do contato: ");
+                scanf("%s", nome);
+                printf("Digite o telefone do contato: ");
+                scanf("%s", telefone);
+                cabeca = adicionarContatoOrdenado(cabeca, nome, telefone);
                 break;
             case '2':
-                removerContato(listaTelefonica, &totalContatos);
+                if (cabeca == NULL) {
+                    printf("Lista de contatos vazia. Nada a remover.\n");
+                } else {
+                    printf("Digite o nome do contato que deseja remover: ");
+                    scanf("%s", nome);
+                    cabeca = removerContato(cabeca, nome);
+                }
                 break;
             case '3':
+                listarContatos(cabeca);
+                break;
+            case '4':
+                if (cabeca == NULL) {
+                    printf("Lista de contatos vazia. Nada a buscar.\n");
+                } else {
+                    printf("Digite o nome do contato que deseja buscar: ");
+                    scanf("%s", nome);
+                    buscarContato(cabeca, nome);
+                }
+                break;
+            case '5':
                 printf("Saindo...\n");
+                liberarLista(cabeca);
                 break;
             default:
                 printf("Opção inválida. Tente novamente.\n");
         }
-    } while (opcao != '3');
+    } while (opcao != '5');
 
-    return 0;
+    return 0;
 }
